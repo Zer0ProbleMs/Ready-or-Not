@@ -4,11 +4,17 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Variables
+    
     [Header("Player Main Components:")] // Makes a header, looks like a title above all the variables in Unity
     [SerializeField] Rigidbody2D rb;
+    [SerializeField] Image staminaBar;
+    [SerializeField] Image staminaBackground;
+    [SerializeField] GameObject stamina;
     
     [FormerlySerializedAs("MoveSpeed")]
     [Header("Player Status:")]
@@ -17,15 +23,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float sprintSpeed = 7f;
     [SerializeField] private float currentStamina = 100f;
     [SerializeField] private bool isRunning = false;
+    [SerializeField] private bool canRun = true;
+    [SerializeField] private bool playerControl = true;
     
     private float maxStamina = 100;
     private float staminaDown = 40f;
     private float staminaUp = 5f;
     private Vector2 _movementinput;
+    private float currentOpacity;
+    
+    #endregion
 
-    private void Awake()
+    private void Start()
     {
-        
+        currentOpacity = 0;
+        stamina.SetActive(false);
     }
 
     private void Update() // Updates every frame
@@ -54,37 +66,63 @@ public class PlayerController : MonoBehaviour
 
     public void Movement()
     {
-        if (isRunning && currentStamina > 0)
+        if (isRunning && currentStamina > 0 && canRun)
             moveSpeed = sprintSpeed; // If the player is holding shift, then the movement is faster
         
         else
             moveSpeed = defaultSpeed; // Otherwise the player moves at default speed
-        
-        rb.linearVelocity = _movementinput * moveSpeed; // The player's velocity
+
+        if (!playerControl) // Checks if the player is allowed to move or not
+            rb.linearVelocity = new Vector2(0, 0); // Stops the player from moving
+        else
+            rb.linearVelocity = _movementinput * moveSpeed; // The player's velocity if the player is moving
     }
 
     public void StaminaBar()
     {
-        if (isRunning && currentStamina > 0 && rb.linearVelocity.magnitude > 0)
-        {
-            StopAllCoroutines();
-            currentStamina -= staminaDown * Time.fixedDeltaTime;
-        }
-
-        else
-            StartCoroutine(RechargeStaminaBar());
+        staminaBar.color = new Color(staminaBar.color.r, staminaBar.color.g, staminaBar.color.b, currentOpacity);
+        staminaBackground.color = new Color(staminaBackground.color.r, staminaBackground.color.g, staminaBackground.color.b, currentOpacity);
         
-        if (currentStamina <= 0) currentStamina = 0; // If the stamina reaches the minimum, then it stops
+        if (isRunning && rb.linearVelocity.magnitude > 0 && canRun) // Checks if the player is moving, wants to run and has stamina
+        {
+            StopAllCoroutines(); // Stops the stamina from recharging
+            currentOpacity = 1;
+            stamina.SetActive(true);
+            currentStamina -= staminaDown * Time.fixedDeltaTime; // Lowers stamina by a fixed rate
+            staminaBar.fillAmount = currentStamina / maxStamina;
+        }
+        else
+            StartCoroutine(RechargeStaminaBar()); // If the player isn't running, then we start the recharge stamina coroutine
+
+        if (currentStamina <= 0) // If the stamina reaches the minimum, then it stops
+        {
+            currentStamina = 0;
+            canRun = false; // Can't run at all if the stamina is all the way down
+        }
+        
+        
     }
 
     private IEnumerator RechargeStaminaBar()
     {
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2.5f); // Starts the following code after 2.5 seconds
 
         while (currentStamina < maxStamina)
         {
-            currentStamina += staminaUp * Time.fixedDeltaTime;
-            if (currentStamina >= maxStamina) currentStamina = maxStamina; // If stamina reaches the max, then it stops
+            currentStamina += staminaUp * Time.fixedDeltaTime; // Recharges stamina
+            staminaBar.fillAmount = currentStamina / maxStamina;
+            if (currentStamina >= maxStamina)   // If stamina reaches the max, then it stops
+            {
+                currentStamina = maxStamina;
+                canRun = true; // Can run again once the stamina is filled back
+                yield return new WaitForSeconds(2f);
+                while (currentOpacity >= 0) // As long as the currentOpacity is higher than 0
+                {
+                    currentOpacity -= 5f * Time.fixedDeltaTime; //Lower it
+                    yield return new WaitForSeconds(0.05f); // Every 0.05 seconds (because a while loop alone is too fast)
+                }
+                stamina.SetActive(false); // Once done, turn off the GameObject
+            }
             yield return new WaitForSeconds(0.1f);
         }
     }
