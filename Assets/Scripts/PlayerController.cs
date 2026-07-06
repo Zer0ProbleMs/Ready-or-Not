@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     Animator playerAnimator;
     SpriteRenderer spriteRenderer;
     StaminaManager _staminaManager;
+    HealthManager _healthManager;
     
     [FormerlySerializedAs("MoveSpeed")]
     [Header("Player Status:")]
@@ -35,10 +36,13 @@ public class PlayerController : MonoBehaviour
         playerAnimator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         _staminaManager = GetComponent<StaminaManager>();
+        _healthManager = GetComponent<HealthManager>();
     }
-
+    
+    
     private void FixedUpdate() // Updates a fixed amount of time, most times better than using time.deltaTime
     {
+        PlayerControllable();
         Movement();
         _staminaManager.StaminaBar();
         Animation();
@@ -48,12 +52,14 @@ public class PlayerController : MonoBehaviour
     
     public void MoveInput(InputAction.CallbackContext context) // Check for an input, ZQSD, and gives the right value depending on which it is
     {
-        _movementinput = context.ReadValue<Vector2>(); // Uses Vector2 to give values, Z is 1 on the y-axis, D is 1 on the x-axis, and the opposite for the rest
+        if(playerControl)
+            _movementinput = context.ReadValue<Vector2>(); // Uses Vector2 to give values, Z is 1 on the y-axis, D is 1 on the x-axis, and the opposite for the rest
     }
     
     public void SprintInput(InputAction.CallbackContext context)
     {
-        runPressed = context.ReadValueAsButton(); // Sends true if left shift is pressed, otherwise false
+        if(playerControl)
+            runPressed = context.ReadValueAsButton(); // Sends true if left shift is pressed, otherwise false
     }
 
     public void Movement()
@@ -68,11 +74,9 @@ public class PlayerController : MonoBehaviour
         
         else
             moveSpeed = defaultSpeed; // Otherwise the player moves at default speed
+
+        rb.linearVelocity = _movementinput.normalized * moveSpeed; // The player's velocity if the player is moving
         
-        if (!playerControl) // Checks if the player is allowed to move or not
-            rb.linearVelocity = new Vector2(0, 0); // Stops the player from moving
-        else
-            rb.linearVelocity = _movementinput.normalized * moveSpeed; // The player's velocity if the player is moving
         /*
         if (_movementinput.x > 0)
             spriteRenderer.flipX = true;
@@ -82,6 +86,11 @@ public class PlayerController : MonoBehaviour
     }
     
     #endregion
+
+    public void PlayerHit()
+    {
+        _healthManager.TakeHealth(1);
+    }
 
     public void Animation()
     {
@@ -95,5 +104,17 @@ public class PlayerController : MonoBehaviour
             playerAnimator.SetFloat("LastInputY", _movementinput.y);
         }
         else playerAnimator.SetBool("isWalking", false);
+    }
+
+    public void PlayerControllable()
+    {
+        playerControl = true;
+        
+        if (!_healthManager.isAlive) playerControl = false;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        PlayerHit();
     }
 }

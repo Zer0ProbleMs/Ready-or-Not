@@ -37,7 +37,6 @@ public class StaminaManager : MonoBehaviour
     
     public void StaminaBar()
     {
-        Debug.Log(staminaBar.material.color); Debug.Log(staminaBackground.material.color);
         StaminaBarMaterialOpacity(1);
         StaminaBarOpacity(currentOpacity);
         
@@ -92,9 +91,7 @@ public class StaminaManager : MonoBehaviour
 
     public void StaminaBarMaterialOpacity(float Opacity)
     {
-        staminaBar.material.color = new Color(1, 1,
-            1, Opacity);
-        staminaBackground.material.color = new Color(1, 1,
-            1, Opacity);
+        staminaBar.material.color = new Color(1, 1, 1, Opacity);
+        staminaBackground.material.color = new Color(1, 1, 1, Opacity);
     }
 }
