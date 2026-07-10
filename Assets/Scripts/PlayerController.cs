@@ -1,10 +1,6 @@
-using System;
-using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
-using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,7 +8,7 @@ public class PlayerController : MonoBehaviour
     
     [Header("Player Main Components:")] // Makes a header, looks like a title above all the variables in Unity
     [SerializeField] Rigidbody2D rb;
-
+    
     Animator playerAnimator;
     SpriteRenderer spriteRenderer;
     StaminaManager _staminaManager;
@@ -20,12 +16,12 @@ public class PlayerController : MonoBehaviour
     
     [FormerlySerializedAs("MoveSpeed")]
     [Header("Player Status:")]
-    [SerializeField] private float moveSpeed = 0;
+    [SerializeField] private float moveSpeed;
     [SerializeField] private float defaultSpeed = 5f;
     [SerializeField] private float sprintSpeed = 7f;
     [SerializeField] private bool playerControl = true;
-    [SerializeField] bool runPressed = false;
-    public bool isRunning = false;
+    [SerializeField] bool runPressed;
+    public bool isRunning;
     
     private Vector2 _movementinput;
     
@@ -52,13 +48,13 @@ public class PlayerController : MonoBehaviour
     
     public void MoveInput(InputAction.CallbackContext context) // Check for an input, ZQSD, and gives the right value depending on which it is
     {
-        if(playerControl)
+        if(playerControl) // Player has to have control
             _movementinput = context.ReadValue<Vector2>(); // Uses Vector2 to give values, Z is 1 on the y-axis, D is 1 on the x-axis, and the opposite for the rest
     }
     
     public void SprintInput(InputAction.CallbackContext context)
     {
-        if(playerControl)
+        if(playerControl) // Player has to have control
             runPressed = context.ReadValueAsButton(); // Sends true if left shift is pressed, otherwise false
     }
 
@@ -89,32 +85,32 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerHit()
     {
-        _healthManager.TakeHealth(1);
+        _healthManager.TakeHealth(1); // If the player is hit, it will take one heart off
     }
 
     public void Animation()
     {
-        playerAnimator.SetBool("isRunning", isRunning);
+        playerAnimator.SetBool("isRunning", isRunning); //If isRunning is true, then we use the run animation
         if (_movementinput.magnitude > 0)
         {
-            playerAnimator.SetBool("isWalking", true);
-            playerAnimator.SetFloat("InputX", _movementinput.x);
-            playerAnimator.SetFloat("InputY", _movementinput.y);
-            playerAnimator.SetFloat("LastInputX", _movementinput.x);
-            playerAnimator.SetFloat("LastInputY", _movementinput.y);
+            playerAnimator.SetBool("isWalking", true); // If isWalking alone is true, then we use the walk animation
+            playerAnimator.SetFloat("InputX", _movementinput.x); // Checks for inputX for animation
+            playerAnimator.SetFloat("InputY", _movementinput.y); // Checks for inputX for animation
+            playerAnimator.SetFloat("LastInputX", _movementinput.x); // Checks for inputX and makes it the last input for idle animation
+            playerAnimator.SetFloat("LastInputY", _movementinput.y); // Checks for inputX and makes it the last input for idle animation
         }
         else playerAnimator.SetBool("isWalking", false);
     }
 
     public void PlayerControllable()
     {
-        playerControl = true;
+        playerControl = true; // Player has control by default
         
-        if (!_healthManager.isAlive) playerControl = false;
+        if (!_healthManager.isAlive) playerControl = false; // Unless he isn't alive
     }
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        PlayerHit();
+        PlayerHit(); // When entering any collision, takes one heart off (for test purposes)
     }
 }

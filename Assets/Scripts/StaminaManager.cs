@@ -31,7 +31,7 @@ public class StaminaManager : MonoBehaviour
     public void Start()
     {
         stamina.SetActive(false);
-        StaminaBarOpacity(currentOpacity);
+        StaminaBarOpacity(currentOpacity); // Turns off the stamina bar by default
         StaminaBarMaterialOpacity(1);
     }
     
@@ -83,15 +83,15 @@ public class StaminaManager : MonoBehaviour
         }
     }
 
-    public void StaminaBarOpacity(float Opacity)
+    public void StaminaBarOpacity(float opacity) // Function to make accessing my stamina bar's opacity easier
     {
-        staminaBar.color = new Color(staminaBar.color.r, staminaBar.color.g, staminaBar.color.b, Opacity);
-        staminaBackground.color = new Color(staminaBackground.color.r, staminaBackground.color.g, staminaBackground.color.b, Opacity);
+        staminaBar.color = new Color(staminaBar.color.r, staminaBar.color.g, staminaBar.color.b, opacity);
+        staminaBackground.color = new Color(staminaBackground.color.r, staminaBackground.color.g, staminaBackground.color.b, opacity);
     }
 
-    public void StaminaBarMaterialOpacity(float Opacity)
+    public void StaminaBarMaterialOpacity(float opacity)
     {
-        staminaBar.material.color = new Color(1, 1, 1, Opacity);
-        staminaBackground.material.color = new Color(1, 1, 1, Opacity);
+        staminaBar.material.color = new Color(1, 1, 1, opacity);
+        staminaBackground.material.color = new Color(1, 1, 1, opacity);
     }
 }
